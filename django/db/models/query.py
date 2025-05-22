@@ -586,7 +586,9 @@ class QuerySet(AltersData):
                 raise TypeError("Complex aggregates require an alias")
             kwargs[arg.default_alias] = arg
 
-        return self.query.chain().get_aggregation(self.db, kwargs)
+        return self.query.chain().get_aggregation(
+            self.db, kwargs, preserve_ordering=True
+        )
 
     async def aaggregate(self, *args, **kwargs):
         return await sync_to_async(self.aggregate)(*args, **kwargs)
@@ -602,7 +604,7 @@ class QuerySet(AltersData):
         if self._result_cache is not None:
             return len(self._result_cache)
 
-        return self.query.get_count(using=self.db)
+        return self.query.get_count(using=self.db, preserve_ordering=True)
 
     async def acount(self):
         return await sync_to_async(self.count)()

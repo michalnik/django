@@ -232,6 +232,7 @@ class Query(BaseExpression):
     default_cols = True
     default_ordering = True
     standard_ordering = True
+    preserve_ordering = False
 
     filter_is_sticky = False
     subquery = False
@@ -443,7 +444,7 @@ class Query(BaseExpression):
             alias = None
         return target.get_col(alias, field)
 
-    def get_aggregation(self, using, aggregate_exprs):
+    def get_aggregation(self, using, aggregate_exprs, preserve_ordering=False):
         """
         Return the dictionary with the values of the existing aggregations.
         """
@@ -520,6 +521,7 @@ class Query(BaseExpression):
             from django.db.models.sql.subqueries import AggregateQuery
 
             inner_query = self.clone()
+            inner_query.preserve_ordering = preserve_ordering
             inner_query.subquery = True
             outer_query = AggregateQuery(self.model, inner_query)
             inner_query.select_for_update = False
@@ -636,12 +638,14 @@ class Query(BaseExpression):
 
         return dict(zip(outer_query.annotation_select, result))
 
-    def get_count(self, using):
+    def get_count(self, using, preserve_ordering=False):
         """
         Perform a COUNT() query using the current filter constraints.
         """
         obj = self.clone()
-        return obj.get_aggregation(using, {"__count": Count("*")})["__count"]
+        return obj.get_aggregation(
+            using, {"__count": Count("*")}, preserve_ordering=preserve_ordering
+        )["__count"]
 
     def has_filters(self):
         return self.where
@@ -2314,8 +2318,9 @@ class Query(BaseExpression):
             self.is_sliced or self.distinct_fields or self.select_for_update
         ):
             return
-        self.order_by = ()
-        self.extra_order_by = ()
+        if force or not self.preserve_ordering:
+            self.order_by = ()
+            self.extra_order_by = ()
         if clear_default:
             self.default_ordering = False
 
