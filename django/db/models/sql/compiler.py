@@ -90,7 +90,7 @@ class SQLCompiler:
         extra_select = self.get_extra_select(order_by, self.select)
         self.has_extra_select = bool(extra_select)
         group_by = self.get_group_by(self.select + extra_select, order_by)
-        if self.query.preserve_ordering is True:
+        if self.query.lazy_clear_ordering is True:
             order_by = []
         return extra_select, order_by, group_by
 

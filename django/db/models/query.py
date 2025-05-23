@@ -587,7 +587,7 @@ class QuerySet(AltersData):
             kwargs[arg.default_alias] = arg
 
         return self.query.chain().get_aggregation(
-            self.db, kwargs, preserve_ordering=True
+            self.db, kwargs, lazy_clear_ordering=True
         )
 
     async def aaggregate(self, *args, **kwargs):
@@ -604,7 +604,7 @@ class QuerySet(AltersData):
         if self._result_cache is not None:
             return len(self._result_cache)
 
-        return self.query.get_count(using=self.db, preserve_ordering=True)
+        return self.query.get_count(using=self.db, lazy_clear_ordering=True)
 
     async def acount(self):
         return await sync_to_async(self.count)()
