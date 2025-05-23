@@ -91,7 +91,10 @@ class SQLCompiler:
         self.has_extra_select = bool(extra_select)
         group_by = self.get_group_by(self.select + extra_select, order_by)
         if self.query.lazy_clear_ordering is True:
-            order_by = []
+            self.query.lazy_clear_ordering = False
+            self.query.clear_ordering()
+            if not self.query.order_by and not self.query.extra_order_by:
+                order_by = []
         return extra_select, order_by, group_by
 
     def get_group_by(self, select, order_by):
